@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML文件清理与预览工具</title>
+    <style>
+        :root {
+            --primary-color: #3498db; /* 主蓝色 */
+            --secondary-color: #2ecc71; /* 蓝绿色 */
+            --accent-color: #1abc9c; /* 天青色 */
+            --light-blue: #e1f5fe; /* 浅蓝色 */
+            --background-color: #f8fdff; /* 浅蓝白色背景 */
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-color: #b3e5fc;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+            /* 添加花纹背景 */
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(52, 152, 219, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(46, 204, 113, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(26, 188, 156, 0.03) 0%, transparent 30%);
+            background-size: 800px 800px, 600px 600px, 1000px 1000px;
+            background-position: -100px -100px, 700px 300px, 200px 600px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        /* 添加装饰性元素 */
+        .decoration {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        .decoration-1 {
+            top: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-color);
+            border-radius: 50%;
+        }
+        
+        .decoration-2 {
+            bottom: -30px;
+            right: -30px;
+            width: 150px;
+            height: 150px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+        }
+        
+        .decoration-3 {
+            top: 40%;
+            left: 5%;
+            width: 100px;
+            height: 100px;
+            background: var(--primary-color);
+            border-radius: 50%;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, var(--light-blue) 0%, rgba(255,255,255,0.9) 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 添加标题装饰 */
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--secondary-color));
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .description {
+            color: #5a6c7d;
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            background: var(--card-bg);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 16px 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: var(--primary-color);
+            background: rgba(52, 152, 219, 0.05);
+        }
+        
+        .tab::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transition: width 0.3s ease;
+        }
+        
+        .tab.active::after {
+            width: 100%;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section, .output-section, .preview-section {
+            flex: 1;
+            min-width: 300px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.1);
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .input-section:hover, .output-section:hover, .preview-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(52, 152, 219, 0.15);
+        }
+        
+        /* 添加卡片装饰 */
+        .section-card-decoration {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
+            border-radius: 0 15px 0 80px;
+            opacity: 0.1;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .file-upload {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: block;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            padding: 8px 12px;
+            background: var(--light-blue);
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .or-divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #7f8c8d;
+            position: relative;
+            font-weight: 500;
+        }
+        
+        .or-divider::before, .or-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 42%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+        }
+        
+        .or-divider::before {
+            left: 0;
+        }
+        
+        .or-divider::after {
+            right: 0;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95rem;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: #fafcfd;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .preview-frame {
+            width: 100%;
+            height: 300px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        .btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #ecf0f1;
+            color: var(--text-color);
+        }
+        
+        .btn-secondary:hover {
+            background: #dde4e6;
+            transform: translateY(-2px);
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #27ae60 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn-preview {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+        
+        .btn-preview:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+        }
+        
+        .features {
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .features::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--secondary-color));
+        }
+        
+        .features h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(52, 152, 219, 0.03);
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature:hover {
+            transform: translateY(-3px);
+            background: rgba(52, 152, 219, 0.05);
+        }
+        
+        .feature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 50%;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .feature strong {
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .feature p {
+            color: #5a6c7d;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            border-top: 1px solid rgba(52, 152, 219, 0.1);
+        }
+        
+        .author-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(26, 188, 156, 0.1) 100%);
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: 500;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: var(--success-color);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            transform: translateX(200%);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification::before {
+            content: "✓";
+            font-weight: bold;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: var(--error-color);
+        }
+        
+        .notification.error::before {
+            content: "!";
+        }
+        
+        .processing-options {
+            margin: 15px 0;
+            padding: 20px;
+            background: rgba(52, 152, 219, 0.03);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .option-label:hover {
+            background: #f5f9ff;
+            transform: translateY(-1px);
+        }
+        
+        .option-label input[type="checkbox"] {
+            accent-color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                text-align: center;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .features-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .option-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 装饰性元素 -->
+        <div class="decoration decoration-1"></div>
+        <div class="decoration decoration-2"></div>
+        <div class="decoration decoration-3"></div>
+        
+        <header>
+            <h1>HTML文件清理与预览工具</h1>
+            <p class="description">上传HTML文件或粘贴代码，一键移除所有注释和空白行。清理后的文件将显示在右侧，您可以直接下载使用或实时预览效果。</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" data-tab="clean">清理工具</button>
+            <button class="tab" data-tab="preview">实时预览</button>
+        </div>
+        
+        <div id="clean-tab" class="tab-content active">
+            <div class="main-content">
+                <div class="input-section">
+                    <div class="section-card-decoration"></div>
+                    <div class="section-header">
+                        <h2>输入</h2>
+                    </div>
+                    
+                    <div class="file-upload">
+                        <input type="file" id="fileInput" class="file-input" accept=".html,.htm">
+                        <label for="fileInput" class="file-label">选择HTML文件</label>
+                        <div id="fileName" class="file-name">未选择文件</div>
+                    </div>
+                    
+                    <div class="or-divider">或</div>
+                    
+                    <div>
+                        <textarea id="htmlInput" placeholder="在此粘贴HTML代码..."></textarea>
+                    </div>
+                    
+                    <div class="processing-options">
+                        <strong>清理选项：</strong>
+                        <div class="option-group">
+                            <label class="option-label">
+                                <input type="checkbox" id="removeHtmlComments" checked>
+                                <span>移除HTML注释</span>
+                            </label>
+                            <label class="option-label">
+                                <input type="checkbox" id="removeCssComments" checked>
+                                <span>移除CSS注释</span>
+                            </label>
+                            <label class="option-label">
+                                <input type="checkbox" id="removeJsComments" checked>
+                                <span>移除JS注释</span>
+                            </label>
+                            <label class="option-label">
+                                <input type="checkbox" id="removeEmptyLines" checked>
+                                <span>移除空白行</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="clearBtn" class="btn btn-secondary">清空</button>
+                        <button id="processBtn" class="btn btn-primary">开始清理</button>
+                    </div>
+                </div>
+                
+                <div class="output-section">
+                    <div class="section-card-decoration"></div>
+                    <div class="section-header">
+                        <h2>输出</h2>
+                    </div>
+                    
+                    <div>
+                        <textarea id="htmlOutput" placeholder="清理后的HTML将显示在这里..." readonly></textarea>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="previewBtn" class="btn btn-preview">预览效果</button>
+                        <button id="downloadBtn" class="btn btn-download" disabled>下载清理后的文件</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="preview-tab" class="tab-content">
+            <div class="main-content">
+                <div class="input-section">
+                    <div class="section-card-decoration"></div>
+                    <div class="section-header">
+                        <h2>HTML代码</h2>
+                    </div>
+                    
+                    <div>
+                        <textarea id="previewHtmlInput" placeholder="在此粘贴HTML代码进行实时预览..."></textarea>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="previewClearBtn" class="btn btn-secondary">清空</button>
+                        <button id="loadExampleBtn" class="btn btn-primary">加载示例</button>
+                    </div>
+                </div>
+                
+                <div class="preview-section">
+                    <div class="section-card-decoration"></div>
+                    <div class="section-header">
+                        <h2>实时预览</h2>
+                    </div>
+                    
+                    <div>
+                        <iframe id="previewFrame" class="preview-frame" sandbox="allow-same-origin allow-scripts"></iframe>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="refreshPreviewBtn" class="btn btn-primary">刷新预览</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h3>功能说明</h3>
+            <div class="features-list">
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>
+                        <strong>移除HTML注释</strong>
+                        <p>删除所有 &lt;!-- 注释内容 --&gt; 格式的HTML注释</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>
+                        <strong>移除CSS注释</strong>
+                        <p>清除&lt;style&gt;标签内的所有 /* 注释内容 */ 格式的CSS注释</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>
+                        <strong>移除JS注释</strong>
+                        <p>清除&lt;script&gt;标签内的所有 // 单行注释 和 /* 多行注释 */</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>
+                        <strong>移除空白行</strong>
+                        <p>删除所有不包含任何内容的空白行，使代码更紧凑</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>
+                        <strong>实时预览</strong>
+                        <p>在清理后或直接输入HTML代码进行实时预览效果</p>
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>
+                        <strong>安全处理</strong>
+                        <p>所有操作在浏览器中完成，无需上传到服务器，保护您的隐私</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification">操作完成！</div>
+    
+    <footer>
+        <p>HTML文件清理与预览工具 &copy; 2023 | 无需上传服务器，所有操作在浏览器中完成</p>
+        <div class="author-info">作者: 小雨小宇小鱼（接定制+🐧298294113）</div>
+    </footer>
+    
+    <script>
+        // JavaScript代码保持不变，仅修改了颜色相关的样式
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM元素
+            const fileInput = document.getElementById('fileInput');
+            const fileName = document.getElementById('fileName');
+            const htmlInput = document.getElementById('htmlInput');
+            const htmlOutput = document.getElementById('htmlOutput');
+            const clearBtn = document.getElementById('clearBtn');
+            const processBtn = document.getElementById('processBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const previewBtn = document.getElementById('previewBtn');
+            const previewHtmlInput = document.getElementById('previewHtmlInput');
+            const previewFrame = document.getElementById('previewFrame');
+            const previewClearBtn = document.getElementById('previewClearBtn');
+            const refreshPreviewBtn = document.getElementById('refreshPreviewBtn');
+            const loadExampleBtn = document.getElementById('loadExampleBtn');
+            const notification = document.getElementById('notification');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // 清理选项
+            const removeHtmlComments = document.getElementById('removeHtmlComments');
+            const removeCssComments = document.getElementById('removeCssComments');
+            const removeJsComments = document.getElementById('removeJsComments');
+            const removeEmptyLines = document.getElementById('removeEmptyLines');
+            
+            // 标签切换
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // 更新标签状态
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // 更新内容显示
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // 文件选择处理
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    fileName.textContent = `已选择: ${file.name}`;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        htmlInput.value = event.target.result;
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            // 清空输入
+            clearBtn.addEventListener('click', function() {
+                htmlInput.value = '';
+                htmlOutput.value = '';
+                fileInput.value = '';
+                fileName.textContent = '未选择文件';
+                downloadBtn.disabled = true;
+            });
+            
+            // 处理HTML
+            processBtn.addEventListener('click', function() {
+                const inputHtml = htmlInput.value.trim();
+                
+                if (!inputHtml) {
+                    showNotification('请输入HTML代码或上传文件', 'error');
+                    return;
+                }
+                
+                // 清理HTML
+                const cleanedHtml = cleanHtml(inputHtml);
+                htmlOutput.value = cleanedHtml;
+                downloadBtn.disabled = false;
+                showNotification('清理完成！');
+            });
+            
+            // 下载清理后的文件
+            downloadBtn.addEventListener('click', function() {
+                const cleanedHtml = htmlOutput.value;
+                if (!cleanedHtml) {
+                    showNotification('没有内容可下载', 'error');
+                    return;
+                }
+                
+                const blob = new Blob([cleanedHtml], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'cleaned.html';
+                document.body.appendChild(a);
+                a.click();
+                
+                // 清理
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            });
+            
+            // 预览清理后的HTML
+            previewBtn.addEventListener('click', function() {
+                const cleanedHtml = htmlOutput.value;
+                if (!cleanedHtml) {
+                    showNotification('没有内容可预览', 'error');
+                    return;
+                }
+                
+                // 切换到预览标签
+                tabs.forEach(t => t.classList.remove('active'));
+                document.querySelector('[data-tab="preview"]').classList.add('active');
+                
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === 'preview-tab') {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // 设置预览内容
+                previewHtmlInput.value = cleanedHtml;
+                updatePreview();
+            });
+            
+            // 更新预览
+            function updatePreview() {
+                const htmlContent = previewHtmlInput.value;
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                previewFrame.src = url;
+            }
+            
+            // 实时预览输入变化
+            previewHtmlInput.addEventListener('input', function() {
+                // 防抖处理，避免频繁更新
+                clearTimeout(this.debounce);
+                this.debounce = setTimeout(() => {
+                    updatePreview();
+                }, 500);
+            });
+            
+            // 刷新预览
+            refreshPreviewBtn.addEventListener('click', function() {
+                updatePreview();
+                showNotification('预览已刷新');
+            });
+            
+            // 清空预览输入
+            previewClearBtn.addEventListener('click', function() {
+                previewHtmlInput.value = '';
+                previewFrame.src = 'about:blank';
+            });
+            
+            // 加载示例
+            loadExampleBtn.addEventListener('click', function() {
+                const exampleHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>示例页面</title>
+    <style>
+        /* 这是CSS注释 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- 这是HTML注释 -->
+    <h1>欢迎使用HTML清理与预览工具</h1>
+    <p>这是一个示例页面，展示了工具的功能。</p>
+    
+    <script>
+        // 这是JavaScript注释
+        console.log("示例脚本");
+    <\/script>
+</body>
+</html>`;
+                previewHtmlInput.value = exampleHtml;
+                updatePreview();
+                showNotification('示例已加载');
+            });
+            
+            // 清理HTML函数
+            function cleanHtml(html) {
+                let cleaned = html;
+                
+                // 根据选项移除HTML注释
+                if (removeHtmlComments.checked) {
+                    cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
+                }
+                
+                // 根据选项移除<style>标签内的CSS注释
+                if (removeCssComments.checked) {
+                    cleaned = cleaned.replace(/<style[\s\S]*?>([\s\S]*?)<\/style>/gi, (match, styleContent) => {
+                        const cleanedStyle = styleContent.replace(/\/\*[\s\S]*?\*\//g, '');
+                        return match.replace(styleContent, cleanedStyle);
+                    });
+                }
+                
+                // 根据选项移除<script>标签内的JS注释
+                if (removeJsComments.checked) {
+                    cleaned = cleaned.replace(/<script[\s\S]*?>([\s\S]*?)<\/script>/gi, (match, scriptContent) => {
+                        // 先移除多行注释
+                        let cleanedScript = scriptContent.replace(/\/\*[\s\S]*?\*\//g, '');
+                        // 再移除单行注释
+                        cleanedScript = cleanedScript.replace(/^\s*\/\/.*$/gm, '');
+                        return match.replace(scriptContent, cleanedScript);
+                    });
+                }
+                
+                // 根据选项移除空白行
+                if (removeEmptyLines.checked) {
+                    cleaned = cleaned.split('\n').filter(line => line.trim() !== '').join('\n');
+                }
+                
+                return cleaned;
+            }
+            
+            // 显示通知
+            function showNotification(message, type = 'success') {
+                notification.textContent = message;
+                notification.className = 'notification show';
+                
+                if (type === 'error') {
+                    notification.classList.add('error');
+                } else {
+                    notification.classList.remove('error');
+                }
+                
+                setTimeout(() => {
+                    notification.className = 'notification';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
